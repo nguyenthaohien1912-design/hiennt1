@@ -85,7 +85,7 @@ def load_docx(file_path):
             chapters.setdefault(current_chapter, []).append(text)
     return chapters
 
-chapters = load_docx("So_tay_Agribank.docx")
+chapters = load_docx("So_tay_Agribank.docx.docx")
 
 # -----------------------
 # Sidebar
@@ -104,11 +104,11 @@ query = st.sidebar.text_input("Nhập từ khóa hoặc câu hỏi (VD: tín d�
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📥 **Tải tài liệu gốc**")
 
-with open("So_tay_Agribank.docx", "rb") as f:
+with open("So_tay_Agribank.docx.docx", "rb") as f:
     st.sidebar.download_button(
         label="⬇️ Tải Sổ tay gốc (.docx)",
         data=f,
-        file_name="So_tay_Agribank.docx",
+        file_name="So_tay_Agribank.docx.docx",
         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )
 
