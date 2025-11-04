@@ -56,7 +56,7 @@ def normalize_text(text: str) -> str:
 @st.cache_data
 def load_docx(file_path):
     """
-    Đọc file Word (.docx) gồm cả đoạn văn và nội dung trong bảng.
+    Đọc file Word (.docx) gồm cả đoạn văn và bảng (table)
     Trả về dict: {Tên chương: [Danh sách nội dung]}
     """
     from docx import Document
@@ -76,35 +76,6 @@ def load_docx(file_path):
         for row in table.rows:
             cells = [cell.text.strip() for cell in row.cells if cell.text.strip()]
             if cells:
-                rows_text.append(" | ".join(cells))
-        return rows_text
-
-    # Gộp paragraphs và tables vào 1 danh sách duyệt theo thứ tự
-    full_texts = []
-    for block in doc.element.body:
-        if block.tag.endswith('tbl'):
-            table_idx = len([b for b in full_texts if isinstance(b, list)])
-            full_texts.append(('table', doc.tables[table_idx]))
-        elif block.tag.endswith('p'):
-            para_idx = len([b for b in full_texts if isinstance(b, str)])
-            if para_idx < len(doc.paragraphs):
-                full_texts.append(('para', doc.paragraphs[para_idx]))
-
-    for kind, content in full_texts:
-        if kind == 'para':
-            text = content.text.strip()
-            if not text:
-                continue
-         if text.lower().startswith("chương"):
-                current_chapter = text
-                chapters[current_chapter] = []
-            else:
-                chapters.setdefault(current_chapter, []).append(text)
-        elif kind == 'table':
-            for line in extract_text_from_table(content):
-                chapters.setdefault(current_chapter, []).append(line)
-
-    return chapters
 
 
     
