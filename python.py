@@ -54,25 +54,45 @@ def normalize_text(text: str) -> str:
     return ''.join(c for c in nfkd if not unicodedata.combining(c)).lower()
 
 @st.cache_data
-def load_docx(file_path: str):
-    """Đọc .docx -> dict {Chương: [đoạn...]}"""
+def load_docx(file_path):
+    from docx import Document
+    import os
     if not os.path.exists(file_path):
         st.error(f"❌ Không tìm thấy file: {file_path}")
         st.stop()
+
     doc = Document(file_path)
     chapters = {}
-    current = "Khác"
-    for p in doc.paragraphs:
-        t = (p.text or "").strip()
-        if not t:
-            continue
-        if t.lower().startswith("chương"):
-            current = t
-            chapters[current] = []
-        else:
-            chapters.setdefault(current, []).append(t)
-    return chapters
+    current_chapter = "Khác"
 
+    def extract_text_from_table(table):
+        rows = []
+        for r in table.rows:
+            cells = [c.text.strip() for c in r.cells if c.text.strip()]
+            if cells:
+                rows.append(" | ".join(cells))
+        return rows
+
+    for element in doc.element.body:
+        if element.tag.endswith("p"):
+            p = element
+            text = p.text.strip()
+            if not text:
+                continue
+            if text.lower().startswith("chương"):
+                current_chapter = text
+                chapters[current_chapter] = []
+            else:
+                chapters.setdefault(current_chapter, []).append(text)
+        elif element.tag.endswith("tbl"):
+            table = element
+            table_obj = doc._element_to_table(table)
+            table_text = extract_text_from_table(table_obj)
+            for t in table_text:
+                chapters.setdefault(current_chapter, []).append(t)
+
+    return chapters
+    
 # =======================
 # Nạp dữ liệu
 # =======================
