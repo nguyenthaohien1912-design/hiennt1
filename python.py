@@ -68,7 +68,6 @@ st.markdown("---")
 # -----------------------
 # Hàm đọc file Word
 # -----------------------
-@st.cache_data
 def load_docx(file_path):
     doc = Document(file_path)
     chapters = {}
@@ -86,12 +85,12 @@ def load_docx(file_path):
             chapters.setdefault(current_chapter, []).append(text)
     return chapters
 
-chapters = load_docx("so_tay.docx")
+chapters = load_docx("So_tay_Agribank.docx")
 
 # -----------------------
 # Sidebar
 # -----------------------
-st.sidebar.image("agribank_logo.png", use_column_width=True)
+st.sidebar.image("logo_agribank.png", use_column_width=True)
 st.sidebar.markdown("### 📑 **Danh mục chương**")
 
 chapter_list = list(chapters.keys())
@@ -105,11 +104,11 @@ query = st.sidebar.text_input("Nhập từ khóa hoặc câu hỏi (VD: tín d�
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📥 **Tải tài liệu gốc**")
 
-with open("so_tay.docx", "rb") as f:
+with open("So_tay_Agribank.docx", "rb") as f:
     st.sidebar.download_button(
         label="⬇️ Tải Sổ tay gốc (.docx)",
         data=f,
-        file_name="So_tay_huong_dan_kiem_tra_Agribank.docx",
+        file_name="So_tay_Agribank.docx",
         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )
 
