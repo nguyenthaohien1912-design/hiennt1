@@ -55,8 +55,14 @@ def normalize_text(text: str) -> str:
 
 @st.cache_data
 def load_docx(file_path):
+    """
+    Đọc file Word .docx (bao gồm cả đoạn văn và nội dung trong bảng)
+    Trả về dict: {Tên chương: [Danh sách đoạn văn]}
+    """
     from docx import Document
     import os
+    from docx.oxml import OxmlElement
+
     if not os.path.exists(file_path):
         st.error(f"❌ Không tìm thấy file: {file_path}")
         st.stop()
@@ -65,39 +71,44 @@ def load_docx(file_path):
     chapters = {}
     current_chapter = "Khác"
 
+    # Hàm phụ để đọc text trong bảng
     def extract_text_from_table(table):
-        """Đọc toàn bộ nội dung từ bảng và nối lại thành các dòng văn bản"""
         rows = []
         for row in table.rows:
-            # Lấy text từ từng cell trong bảng
             cells = [cell.text.strip() for cell in row.cells if cell.text.strip()]
             if cells:
                 rows.append(" | ".join(cells))
         return rows
 
-    # Đọc toàn bộ phần thân tài liệu (paragraphs + tables)
-    for block in doc.element.body:
-        # Đoạn văn
-        if block.tag.endswith('p'):
-            for p in doc.paragraphs:
-                text = p.text.strip()
-                if not text:
-                    continue
-                if text.lower().startswith("chương"):
-                    current_chapter = text
-                    chapters[current_chapter] = []
-                else:
-                    chapters.setdefault(current_chapter, []).append(text)
-            break  # tránh đọc lại các đoạn trùng
-        # Bảng
-        elif block.tag.endswith('tbl'):
-            # tìm tất cả bảng
+    # 🔹 Duyệt toàn bộ phần tử trong tài liệu theo thứ tự gốc
+    for element in doc.element.body:
+        # Nếu là đoạn văn (paragraph)
+        if element.tag.endswith("p"):
+            para = OxmlElement(element)
+            text = para.text.strip() if para.text else ""
+            if not text:
+                continue
+
+            # Nhận diện tiêu đề chương
+            if text.lower().startswith("chương"):
+                current_chapter = text
+                chapters[current_chapter] = []
+            else:
+                chapters.setdefault(current_chapter, []).append(text)
+
+        # Nếu là bảng (table)
+        elif element.tag.endswith("tbl"):
+            # Tìm bảng tương ứng trong doc.tables
             for table in doc.tables:
-                for t in extract_text_from_table(table):
-                    chapters.setdefault(current_chapter, []).append(t)
-            break
+                table_texts = extract_text_from_table(table)
+                if table_texts:
+                    for t in table_texts:
+                        chapters.setdefault(current_chapter, []).append(t)
+            # tránh lặp lại bảng
+            doc.tables = []
 
     return chapters
+
     
 # =======================
 # Nạp dữ liệu
