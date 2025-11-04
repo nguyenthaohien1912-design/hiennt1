@@ -56,12 +56,11 @@ def normalize_text(text: str) -> str:
 @st.cache_data
 def load_docx(file_path):
     """
-    Đọc file Word .docx (bao gồm cả đoạn văn và nội dung trong bảng)
-    Trả về dict: {Tên chương: [Danh sách đoạn văn]}
+    Đọc file Word (.docx) gồm cả đoạn văn và nội dung trong bảng.
+    Trả về dict: {Tên chương: [Danh sách nội dung]}
     """
     from docx import Document
     import os
-    from docx.oxml import OxmlElement
 
     if not os.path.exists(file_path):
         st.error(f"❌ Không tìm thấy file: {file_path}")
@@ -71,43 +70,33 @@ def load_docx(file_path):
     chapters = {}
     current_chapter = "Khác"
 
-    # Hàm phụ để đọc text trong bảng
     def extract_text_from_table(table):
-        rows = []
+        """Đọc text trong bảng (kết hợp các ô theo hàng)"""
+        rows_text = []
         for row in table.rows:
             cells = [cell.text.strip() for cell in row.cells if cell.text.strip()]
             if cells:
-                rows.append(" | ".join(cells))
-        return rows
+                rows_text.append(" | ".join(cells))
+        return rows_text
 
-    # 🔹 Duyệt toàn bộ phần tử trong tài liệu theo thứ tự gốc
-    for element in doc.element.body:
-        # Nếu là đoạn văn (paragraph)
-        if element.tag.endswith("p"):
-            para = OxmlElement(element)
-            text = para.text.strip() if para.text else ""
+    # Gộp paragraphs và tables vào 1 danh sách duyệt theo thứ tự
+    full_texts = []
+    for block in doc.element.body:
+        if block.tag.endswith('tbl'):
+            table_idx = len([b for b in full_texts if isinstance(b, list)])
+            full_texts.append(('table', doc.tables[table_idx]))
+        elif block.tag.endswith('p'):
+            para_idx = len([b for b in full_texts if isinstance(b, str)])
+            if para_idx < len(doc.paragraphs):
+                full_texts.append(('para', doc.paragraphs[para_idx]))
+
+    for kind, content in full_texts:
+        if kind == 'para':
+            text = content.text.strip()
             if not text:
                 continue
+            if text.lo
 
-            # Nhận diện tiêu đề chương
-            if text.lower().startswith("chương"):
-                current_chapter = text
-                chapters[current_chapter] = []
-            else:
-                chapters.setdefault(current_chapter, []).append(text)
-
-        # Nếu là bảng (table)
-        elif element.tag.endswith("tbl"):
-            # Tìm bảng tương ứng trong doc.tables
-            for table in doc.tables:
-                table_texts = extract_text_from_table(table)
-                if table_texts:
-                    for t in table_texts:
-                        chapters.setdefault(current_chapter, []).append(t)
-            # tránh lặp lại bảng
-            doc.tables = []
-
-    return chapters
 
     
 # =======================
