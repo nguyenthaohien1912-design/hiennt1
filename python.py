@@ -9,7 +9,7 @@ from difflib import get_close_matches, SequenceMatcher
 # Cấu hình trang
 # =======================
 st.set_page_config(
-    page_title="Sổ tay hướng dẫn kiểm tra Agribank Hà Thành",
+    page_title="Sổ tay hướng dẫn kiểm tra Agribank",
     page_icon="📘",
     layout="wide"
 )
@@ -42,7 +42,7 @@ with col1:
                  use_column_width=True)
 with col2:
     st.title("📘 SỔ TAY HƯỚNG DẪN KIỂM TRA NGHIỆP VỤ")
-    st.subheader("Agribank Chi nhánh Hà Thành – Phiên bản số hóa")
+    st.subheader("Agribank - Phiên bản số hóa")
 st.markdown("---")
 
 # =======================
