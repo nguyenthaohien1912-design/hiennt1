@@ -95,7 +95,16 @@ def load_docx(file_path):
             text = content.text.strip()
             if not text:
                 continue
-            if text.lo
+         if text.lower().startswith("chương"):
+                current_chapter = text
+                chapters[current_chapter] = []
+            else:
+                chapters.setdefault(current_chapter, []).append(text)
+        elif kind == 'table':
+            for line in extract_text_from_table(content):
+                chapters.setdefault(current_chapter, []).append(line)
+
+    return chapters
 
 
     
