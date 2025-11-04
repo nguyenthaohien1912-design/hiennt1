@@ -126,20 +126,39 @@ for para in chapters[selected_chapter]:
     st.markdown(f"- {para}")
 
 # -----------------------
-# Chatbot kết quả
+# Chatbot kết quả (tìm kiếm nâng cao)
 # -----------------------
+import re
+import unicodedata
+
+def normalize_text(text):
+    """Chuẩn hóa văn bản: bỏ dấu, chuyển về chữ thường"""
+    nfkd = unicodedata.normalize('NFKD', text)
+    return ''.join([c for c in nfkd if not unicodedata.combining(c)]).lower()
+
 if query:
     st.markdown("---")
-    st.subheader(f"🔍 Kết quả tìm kiếm cho: *{query}*")
+    st.subheader(f"🔎 Kết quả tìm kiếm cho: *{query}*")
 
-    results = []
+    normalized_query = normalize_text(query)
+    results_by_chapter = {}
+
     for ch, paras in chapters.items():
         for p in paras:
-            if query.lower() in p.lower():
-                results.append(f"**[{ch}]** {p}")
+            if normalized_query in normalize_text(p):
+                results_by_chapter.setdefault(ch, []).append(p)
 
-    if results:
-        for r in results[:8]:
-            st.markdown(f"🔹 {r}")
+    if results_by_chapter:
+        for ch, paras in results_by_chapter.items():
+            with st.expander(f"📁 {ch} ({len(paras)} kết quả)", expanded=True):
+                for para in paras:
+                    # Làm nổi bật từ khóa
+                    highlighted = re.sub(
+                        f"({re.escape(query)})",
+                        r"**\1**",
+                        para,
+                        flags=re.IGNORECASE
+                    )
+                    st.markdown(f"🔹 {highlighted}")
     else:
         st.info("Không tìm thấy nội dung phù hợp. Hãy thử từ khóa khác.")
