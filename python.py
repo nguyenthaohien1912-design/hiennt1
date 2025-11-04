@@ -59,7 +59,7 @@ st.markdown("""
 # -----------------------
 col1, col2 = st.columns([0.15, 0.85])
 with col1:
-    st.image("agribank_logo.png", use_column_width=True)
+    st.image("logo_agribank.png", use_column_width=True)
 with col2:
     st.title("📘 SỔ TAY HƯỚNG DẪN KIỂM TRA NGHIỆP VỤ")
     st.subheader("Agribank Chi nhánh Hà Thành – Phiên bản số hóa")
