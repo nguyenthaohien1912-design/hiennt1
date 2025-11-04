@@ -66,30 +66,36 @@ def load_docx(file_path):
     current_chapter = "Khác"
 
     def extract_text_from_table(table):
+        """Đọc toàn bộ nội dung từ bảng và nối lại thành các dòng văn bản"""
         rows = []
-        for r in table.rows:
-            cells = [c.text.strip() for c in r.cells if c.text.strip()]
+        for row in table.rows:
+            # Lấy text từ từng cell trong bảng
+            cells = [cell.text.strip() for cell in row.cells if cell.text.strip()]
             if cells:
                 rows.append(" | ".join(cells))
         return rows
 
-    for element in doc.element.body:
-        if element.tag.endswith("p"):
-            p = element
-            text = p.text.strip()
-            if not text:
-                continue
-            if text.lower().startswith("chương"):
-                current_chapter = text
-                chapters[current_chapter] = []
-            else:
-                chapters.setdefault(current_chapter, []).append(text)
-        elif element.tag.endswith("tbl"):
-            table = element
-            table_obj = doc._element_to_table(table)
-            table_text = extract_text_from_table(table_obj)
-            for t in table_text:
-                chapters.setdefault(current_chapter, []).append(t)
+    # Đọc toàn bộ phần thân tài liệu (paragraphs + tables)
+    for block in doc.element.body:
+        # Đoạn văn
+        if block.tag.endswith('p'):
+            for p in doc.paragraphs:
+                text = p.text.strip()
+                if not text:
+                    continue
+                if text.lower().startswith("chương"):
+                    current_chapter = text
+                    chapters[current_chapter] = []
+                else:
+                    chapters.setdefault(current_chapter, []).append(text)
+            break  # tránh đọc lại các đoạn trùng
+        # Bảng
+        elif block.tag.endswith('tbl'):
+            # tìm tất cả bảng
+            for table in doc.tables:
+                for t in extract_text_from_table(table):
+                    chapters.setdefault(current_chapter, []).append(t)
+            break
 
     return chapters
     
